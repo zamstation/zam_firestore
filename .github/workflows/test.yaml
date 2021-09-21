@@ -1,0 +1,21 @@
+name: Test
+
+on:
+  push:
+    branches-ignore: [temp]
+  pull_request:
+    branches-ignore: [temp]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          path: workspace/code
+      - name: Install Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Test Port
+        uses: zamstation/dart_package_deployer/actions/test@main
