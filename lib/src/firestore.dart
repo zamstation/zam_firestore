@@ -10,9 +10,9 @@ class Firestore extends Database {
   final p.FirebaseFirestore db;
 
   Firestore({
-    required this.config,
-    required String host,
-    required bool sslEnabled,
+    this.config = const DatabaseConfig(),
+    String? host,
+    bool? sslEnabled,
     bool persistenceEnabled = false,
   }) : db = p.FirebaseFirestore.instance
           ..settings = p.Settings(
