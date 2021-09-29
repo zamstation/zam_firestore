@@ -14,12 +14,7 @@ class Firestore extends Database {
     String? host,
     bool? sslEnabled,
     bool persistenceEnabled = false,
-  }) : db = p.FirebaseFirestore.instance
-          ..settings = p.Settings(
-            host: host,
-            sslEnabled: sslEnabled,
-            persistenceEnabled: persistenceEnabled,
-          );
+  }) : db = p.FirebaseFirestore.instance;
 
   p.CollectionReference<ENTITY> getCollection<ENTITY extends Entity>(
     Table<ENTITY> table,
