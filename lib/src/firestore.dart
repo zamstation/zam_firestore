@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as p;
 import 'package:zam_database/zam_database.dart';
 
-export 'package:zam_database/zam_database.dart' show DatabaseConfig;
+import 'extensions/_.index.dart';
 
 class Firestore extends Database {
   @override
@@ -24,7 +24,8 @@ class Firestore extends Database {
     return db.collection(table.path!).withConverter<ENTITY>(
           fromFirestore: (document, options) {
             if (!document.exists)
-              throw 'DocumentNotFoundError: Document with id \'${document.id}\' not found.';
+              throw DocumentNotFoundInDatabaseException(
+                  table.path!, document.id);
             return table
                 .createEntity({'key': document.id, ...document.data()!});
           },
@@ -49,8 +50,22 @@ class Firestore extends Database {
   }
 
   @override
+  Stream<ENTITY> stream<ENTITY extends Entity>(
+    Table<ENTITY> table, {
+    required String key,
+  }) {
+    return getCollection(table).doc(key).streamAndConvert();
+  }
+
+  @override
   Future<Iterable<ENTITY>> getAll<ENTITY extends Entity>(Table<ENTITY> table) {
     return getCollection(table).getAndConvert();
+  }
+
+  @override
+  Stream<Iterable<ENTITY>> streamAll<ENTITY extends Entity>(
+      Table<ENTITY> table) {
+    return getCollection(table).streamAndConvert();
   }
 
   @override
@@ -62,44 +77,22 @@ class Firestore extends Database {
   }
 
   @override
-  Stream<ENTITY> stream<ENTITY extends Entity>(
+  Future<Iterable<ENTITY>> getMultiple<ENTITY extends Entity>(
     Table<ENTITY> table, {
-    required String key,
+    required List<String> keys,
   }) {
-    return getCollection(table).doc(key).streamAndConvert();
+    return getCollection(table)
+        .where(p.FieldPath.documentId, whereIn: keys)
+        .getAndConvert();
   }
 
   @override
-  Stream<Iterable<ENTITY>> streamAll<ENTITY extends Entity>(
-      Table<ENTITY> table) {
-    return getCollection(table).streamAndConvert();
-  }
-}
-
-extension on p.Query<Entity> {
-  Future<Iterable<ENTITY>> getAndConvert<ENTITY extends Entity>() {
-    return (this as p.Query<ENTITY>)
-        .get()
-        .then((query) => query.docs.map((doc) => doc.data()));
-  }
-
-  Stream<Iterable<ENTITY>> streamAndConvert<ENTITY extends Entity>() {
-    return (this as p.Query<ENTITY>)
-        .snapshots()
-        .map((query) => query.docs.map((doc) => doc.data()));
-  }
-}
-
-extension on p.DocumentReference<Entity> {
-  Future<ENTITY> getAndConvert<ENTITY extends Entity>() {
-    return (this as p.DocumentReference<ENTITY>)
-        .get()
-        .then((doc) => doc.data()!);
-  }
-
-  Stream<ENTITY> streamAndConvert<ENTITY extends Entity>() {
-    return (this as p.DocumentReference<ENTITY>)
-        .snapshots()
-        .map((doc) => doc.data()!);
+  Stream<Iterable<ENTITY>> streamMultiple<ENTITY extends Entity>(
+    Table<ENTITY> table, {
+    required List<String> keys,
+  }) {
+    return getCollection(table)
+        .where(p.FieldPath.documentId, whereIn: keys)
+        .streamAndConvert();
   }
 }
