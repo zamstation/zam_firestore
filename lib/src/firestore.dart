@@ -23,11 +23,18 @@ class Firestore extends Database {
 
     return db.collection(table.path!).withConverter<ENTITY>(
           fromFirestore: (document, options) {
-            if (!document.exists)
+            if (!document.exists) {
               throw DocumentNotFoundInDatabaseException(
-                  table.path!, document.id);
-            return table
-                .createEntity({'key': document.id, ...document.data()!});
+                table.path!,
+                document.id,
+              );
+            }
+
+            final data = document.data()!.map((key, value) => MapEntry(
+                  key,
+                  value.runtimeType == p.Timestamp ? value.toDate() : value,
+                ));
+            return table.createEntity({'key': document.id, ...data});
           },
           toFirestore: (document, options) => table.serialize(document),
         );
@@ -37,8 +44,13 @@ class Firestore extends Database {
   Future<bool> exists<ENTITY extends Entity>(
     Table<ENTITY> table, {
     required String key,
-  }) {
-    return getCollection(table).doc(key).get().then((value) => value.exists);
+  }) async {
+    if (table.path == null) {
+      return false;
+    }
+
+    final documentSnapshot = await db.collection(table.path!).doc(key).get();
+    return documentSnapshot.exists;
   }
 
   @override
