@@ -17,5 +17,5 @@ jobs:
           path: workspace/code
       - name: Install Dart
         uses: dart-lang/setup-dart@v1
-      - name: Test Port
+      - name: Test
         uses: zamstation/dart_package_deployer/actions/test@main
