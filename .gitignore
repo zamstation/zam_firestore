@@ -3,3 +3,5 @@
 /coverage/
 pubspec.lock
 .packages
+.flutter-plugins
+.flutter-plugins-dependencies
